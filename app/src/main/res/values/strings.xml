@@ -1,0 +1,36 @@
+<resources>
+    <string name="app_name">To-Do List</string>
+    <string name="add_task">Add Task</string>
+    <string name="edit_task">Edit Task</string>
+    <string name="save_task">Save Task</string>
+    <string name="title">Title</string>
+    <string name="description">Description</string>
+    <string name="priority">Priority</string>
+    <string name="due_date">Due Date</string>
+    <string name="pick_date">Pick Date</string>
+    <string name="task_saved">Task saved</string>
+    <string name="task_deleted">Task deleted</string>
+    <string name="title_required">Please enter a title</string>
+    <string name="no_tasks">No tasks yet</string>
+    <string name="due_date_label">Due: %1$s</string>
+    <string name="filter_all">All</string>
+    <string name="filter_completed">Completed</string>
+    <string name="sort_date">Sort: Date</string>
+    <string name="sort_priority">Sort: Priority</string>
+
+    <string-array name="priority_options">
+        <item>High</item>
+        <item>Medium</item>
+        <item>Low</item>
+    </string-array>
+
+    <string-array name="filter_options">
+        <item>@string/filter_all</item>
+        <item>@string/filter_completed</item>
+    </string-array>
+
+    <string-array name="sort_options">
+        <item>@string/sort_date</item>
+        <item>@string/sort_priority</item>
+    </string-array>
+</resources>
