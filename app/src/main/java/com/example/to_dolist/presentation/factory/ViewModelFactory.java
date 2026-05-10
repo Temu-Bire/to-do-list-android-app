@@ -43,7 +43,8 @@ public class ViewModelFactory implements ViewModelProvider.Factory {
                     new UpdateTaskUseCase(repository),
                     new DeleteTaskUseCase(repository),
                     new GetCategoriesUseCase(repository),
-                    new GetOverdueTasksUseCase(repository)
+                    new GetOverdueTasksUseCase(repository),
+                    repository
             );
         }
 
@@ -57,7 +58,12 @@ public class ViewModelFactory implements ViewModelProvider.Factory {
         }
 
         if (modelClass.isAssignableFrom(SearchViewModel.class)) {
-            return (T) new SearchViewModel(new SearchTasksUseCase(repository));
+            return (T) new SearchViewModel(
+                    new SearchTasksUseCase(repository),
+                    new DeleteTaskUseCase(repository),
+                    new UpdateTaskUseCase(repository),
+                    new AddTaskUseCase(repository)
+            );
         }
 
         throw new IllegalArgumentException("Unknown ViewModel class: " + modelClass.getName());

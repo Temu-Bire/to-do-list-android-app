@@ -7,6 +7,7 @@ import com.example.to_dolist.data.local.dao.CategoryDao;
 import com.example.to_dolist.data.local.dao.SubtaskDao;
 import com.example.to_dolist.data.local.dao.TaskDao;
 import com.example.to_dolist.data.local.entity.CategoryEntity;
+import com.example.to_dolist.data.local.entity.TaskEntity;
 import com.example.to_dolist.data.mapper.CategoryMapper;
 import com.example.to_dolist.data.mapper.SubtaskMapper;
 import com.example.to_dolist.data.mapper.TaskMapper;
@@ -54,6 +55,16 @@ public class TaskRepositoryImpl implements ITaskRepository {
     }
 
     @Override
+    public LiveData<List<Task>> getIncompleteTasks() {
+        return Transformations.map(taskDao.getIncompleteTasks(), TaskMapper::toDomainList);
+    }
+
+    @Override
+    public LiveData<List<Task>> getInProgressTasks() {
+        return Transformations.map(taskDao.getInProgressTasks(), TaskMapper::toDomainList);
+    }
+
+    @Override
     public LiveData<List<Task>> getCompletedTasks() {
         return Transformations.map(taskDao.getCompletedTasks(), TaskMapper::toDomainList);
     }
@@ -84,8 +95,13 @@ public class TaskRepositoryImpl implements ITaskRepository {
 
     @Override
     public void insertTask(Task task) {
-        executor.execute(() -> taskDao.insert(TaskMapper.toEntity(task)));
-        // Note: subtasks for brand-new tasks are saved via updateTask once the ID is known.
+        executor.execute(() -> {
+            TaskEntity entity = TaskMapper.toEntity(task);
+            if (entity.getId() == 0) {
+                entity.setSortOrder(taskDao.peekNextSortOrder());
+            }
+            taskDao.insert(entity);
+        });
     }
 
     @Override
@@ -106,6 +122,17 @@ public class TaskRepositoryImpl implements ITaskRepository {
     public void deleteTask(Task task) {
         // Subtasks cascade-deleted by Room foreign key definition
         executor.execute(() -> taskDao.delete(TaskMapper.toEntity(task)));
+    }
+
+    @Override
+    public void updateSortOrders(List<Task> orderedTasks) {
+        if (orderedTasks == null || orderedTasks.isEmpty()) return;
+        executor.execute(() -> {
+            for (int i = 0; i < orderedTasks.size(); i++) {
+                Task t = orderedTasks.get(i);
+                taskDao.updateSortOrder(t.getId(), (i + 1) * 1000);
+            }
+        });
     }
 
     // ─── Categories ──────────────────────────────────────────────────────────

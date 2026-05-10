@@ -22,4 +22,7 @@ public interface CategoryDao {
 
     @Query("SELECT * FROM categories ORDER BY name ASC")
     LiveData<List<CategoryEntity>> getAllCategories();
+
+    @Query("SELECT * FROM categories ORDER BY name ASC")
+    List<CategoryEntity> getAllCategoriesSnapshot();
 }

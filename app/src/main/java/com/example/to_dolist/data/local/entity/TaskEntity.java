@@ -1,5 +1,7 @@
 package com.example.to_dolist.data.local.entity;
 
+import androidx.annotation.NonNull;
+import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
@@ -13,14 +15,23 @@ public class TaskEntity {
     private String priority;        // stores Priority.label e.g. "High"
     private long dueDate;
     private boolean completed;
-    private Integer categoryId;     // nullable FK → categories.id
+    private Integer categoryId;     // nullable FK -> categories.id
     private boolean reminderEnabled;
     private boolean recurring;
     private String recurrenceRule;
 
+    /** PENDING or IN_PROGRESS */
+    @NonNull
+    @ColumnInfo(defaultValue = "PENDING")
+    private String workflowStatus = "PENDING";
+
+    @ColumnInfo(defaultValue = "0")
+    private int sortOrder;
+
     public TaskEntity(String title, String description, String priority,
                       long dueDate, boolean completed, Integer categoryId,
-                      boolean reminderEnabled, boolean recurring, String recurrenceRule) {
+                      boolean reminderEnabled, boolean recurring, String recurrenceRule,
+                      @NonNull String workflowStatus, int sortOrder) {
         this.title = title;
         this.description = description;
         this.priority = priority;
@@ -30,6 +41,8 @@ public class TaskEntity {
         this.reminderEnabled = reminderEnabled;
         this.recurring = recurring;
         this.recurrenceRule = recurrenceRule;
+        this.workflowStatus = workflowStatus;
+        this.sortOrder = sortOrder;
     }
 
     public int getId() { return id; }
@@ -61,4 +74,11 @@ public class TaskEntity {
 
     public String getRecurrenceRule() { return recurrenceRule; }
     public void setRecurrenceRule(String recurrenceRule) { this.recurrenceRule = recurrenceRule; }
+
+    @NonNull
+    public String getWorkflowStatus() { return workflowStatus; }
+    public void setWorkflowStatus(@NonNull String workflowStatus) { this.workflowStatus = workflowStatus; }
+
+    public int getSortOrder() { return sortOrder; }
+    public void setSortOrder(int sortOrder) { this.sortOrder = sortOrder; }
 }

@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Notifications (Android 13+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <!-- WorkManager requires RECEIVE_BOOT_COMPLETED to reschedule on reboot -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
     <application
         android:name=".ToDoApplication"
@@ -18,16 +16,25 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ToDoList">
 
-        <!-- Launcher Activity -->
         <activity
-            android:name=".presentation.home.HomeActivity"
+            android:name=".ui.MainActivity"
             android:exported="true"
-            android:windowSoftInputMode="adjustResize">
+            android:theme="@style/Theme.ToDoList">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".presentation.unlock.UnlockActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".presentation.home.HomeActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".presentation.addedit.AddEditActivity"
@@ -47,6 +54,21 @@
             android:label="@string/title_settings"
             android:parentActivityName=".presentation.home.HomeActivity" />
 
+        <activity
+            android:name=".presentation.dashboard.DashboardActivity"
+            android:exported="false"
+            android:label="@string/title_dashboard"
+            android:parentActivityName=".presentation.home.HomeActivity" />
+
+        <activity
+            android:name=".presentation.calendar.CalendarActivity"
+            android:exported="false"
+            android:label="@string/title_calendar"
+            android:parentActivityName=".presentation.home.HomeActivity" />
+
+        <receiver
+            android:name=".notification.TaskActionReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>

@@ -24,32 +24,46 @@ public interface TaskDao {
     @Delete
     void delete(TaskEntity task);
 
-    // All tasks sorted by due date
-    @Query("SELECT * FROM tasks ORDER BY dueDate ASC")
+    @Query("SELECT * FROM tasks WHERE id = :id LIMIT 1")
+    TaskEntity findByIdSync(int id);
+
+    @Query("SELECT COALESCE(MAX(sortOrder), 0) + 1 FROM tasks")
+    int peekNextSortOrder();
+
+    @Query("UPDATE tasks SET sortOrder = :sortOrder WHERE id = :id")
+    void updateSortOrder(int id, int sortOrder);
+
+    @Query("SELECT * FROM tasks ORDER BY sortOrder ASC, dueDate ASC")
     LiveData<List<TaskEntity>> getAllTasks();
 
-    // Only completed tasks
-    @Query("SELECT * FROM tasks WHERE completed = 1 ORDER BY dueDate ASC")
+    @Query("SELECT * FROM tasks WHERE completed = 1 ORDER BY sortOrder ASC, dueDate ASC")
     LiveData<List<TaskEntity>> getCompletedTasks();
 
-    // Smart priority sort: High → Medium → Low, then by date
+    @Query("SELECT * FROM tasks WHERE completed = 0 ORDER BY sortOrder ASC, dueDate ASC")
+    LiveData<List<TaskEntity>> getIncompleteTasks();
+
+    @Query("SELECT * FROM tasks WHERE completed = 0 AND workflowStatus = 'IN_PROGRESS' " +
+           "ORDER BY sortOrder ASC, dueDate ASC")
+    LiveData<List<TaskEntity>> getInProgressTasks();
+
     @Query("SELECT * FROM tasks ORDER BY " +
            "CASE priority WHEN 'High' THEN 1 WHEN 'Medium' THEN 2 ELSE 3 END, " +
-           "dueDate ASC")
+           "sortOrder ASC, dueDate ASC")
     LiveData<List<TaskEntity>> getTasksSortedByPriority();
 
-    // Filter by category
-    @Query("SELECT * FROM tasks WHERE categoryId = :categoryId ORDER BY dueDate ASC")
+    @Query("SELECT * FROM tasks WHERE categoryId = :categoryId ORDER BY sortOrder ASC, dueDate ASC")
     LiveData<List<TaskEntity>> getTasksByCategory(int categoryId);
 
-    // Real-time search — title OR description
     @Query("SELECT * FROM tasks WHERE " +
            "title LIKE '%' || :query || '%' OR " +
            "description LIKE '%' || :query || '%' " +
-           "ORDER BY dueDate ASC")
+           "ORDER BY sortOrder ASC, dueDate ASC")
     LiveData<List<TaskEntity>> searchTasks(String query);
 
-    // Overdue = not completed AND due date is in the past
-    @Query("SELECT * FROM tasks WHERE completed = 0 AND dueDate < :now ORDER BY dueDate ASC")
+    @Query("SELECT * FROM tasks WHERE completed = 0 AND dueDate < :now " +
+           "ORDER BY dueDate ASC")
     LiveData<List<TaskEntity>> getOverdueTasks(long now);
+
+    @Query("SELECT * FROM tasks ORDER BY sortOrder ASC, id ASC")
+    List<TaskEntity> getAllTasksSnapshot();
 }

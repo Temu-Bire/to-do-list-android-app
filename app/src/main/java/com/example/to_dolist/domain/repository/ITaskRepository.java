@@ -17,6 +17,10 @@ public interface ITaskRepository {
 
     LiveData<List<Task>> getAllTasks();
 
+    LiveData<List<Task>> getIncompleteTasks();
+
+    LiveData<List<Task>> getInProgressTasks();
+
     LiveData<List<Task>> getCompletedTasks();
 
     LiveData<List<Task>> getTasksSortedByPriority();
@@ -32,6 +36,9 @@ public interface ITaskRepository {
     void updateTask(Task task);
 
     void deleteTask(Task task);
+
+    /** Persist order after drag-and-drop (assigns sortOrder by list index). */
+    void updateSortOrders(List<Task> orderedTasks);
 
     // ─── Categories ──────────────────────────────────────────────────────────
 

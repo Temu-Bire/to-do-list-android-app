@@ -5,6 +5,7 @@ import android.graphics.Paint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AnimationUtils;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -17,6 +18,12 @@ import com.example.to_dolist.core.util.DateUtils;
 import com.example.to_dolist.core.util.UiResources;
 import com.example.to_dolist.databinding.ItemTaskBinding;
 import com.example.to_dolist.domain.model.Task;
+import com.example.to_dolist.domain.model.TaskDisplayStatus;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
 
@@ -29,10 +36,22 @@ public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
     }
 
     private final TaskListener listener;
+    private Map<Integer, String> categoryNames = new HashMap<>();
 
     public TaskAdapter(TaskListener listener) {
         super(DIFF_CALLBACK);
         this.listener = listener;
+        setHasStableIds(true);
+    }
+
+    @Override
+    public long getItemId(int position) {
+        Task t = getItem(position);
+        return t != null ? t.getId() : RecyclerView.NO_ID;
+    }
+
+    public void setCategoryNames(Map<Integer, String> names) {
+        categoryNames = names != null ? names : new HashMap<>();
     }
 
     private static final DiffUtil.ItemCallback<Task> DIFF_CALLBACK =
@@ -45,10 +64,20 @@ public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
                 @Override
                 public boolean areContentsTheSame(@NonNull Task o, @NonNull Task n) {
                     return o.isCompleted() == n.isCompleted()
-                            && o.getTitle().equals(n.getTitle())
+                            && Objects.equals(o.getTitle(), n.getTitle())
+                            && Objects.equals(o.getDescription(), n.getDescription())
                             && o.getPriority() == n.getPriority()
                             && o.getDueDate() == n.getDueDate()
-                            && o.isOverdue() == n.isOverdue();
+                            && o.isOverdue() == n.isOverdue()
+                            && o.getWorkflowStatus() == n.getWorkflowStatus()
+                            && Objects.equals(o.getCategoryId(), n.getCategoryId())
+                            && o.getSortOrder() == n.getSortOrder()
+                            && o.getSubtaskCompletedCount() == n.getSubtaskCompletedCount()
+                            && subtaskSize(o) == subtaskSize(n);
+                }
+
+                private int subtaskSize(Task t) {
+                    return t.getSubtasks() == null ? 0 : t.getSubtasks().size();
                 }
             };
 
@@ -62,14 +91,27 @@ public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull TaskViewHolder holder, int position) {
-        holder.bind(getItem(position), listener);
+        holder.bind(getItem(position), listener, categoryNames);
+    }
+
+    @Override
+    public void onViewAttachedToWindow(@NonNull TaskViewHolder holder) {
+        super.onViewAttachedToWindow(holder);
+        holder.itemView.startAnimation(AnimationUtils.loadAnimation(
+                holder.itemView.getContext(), android.R.anim.fade_in));
     }
 
     public Task getTaskAt(int position) {
         return getItem(position);
     }
 
-    // ─── ViewHolder ───────────────────────────────────────────────────────────
+    public void moveItem(int from, int to, Runnable commitCallback) {
+        List<Task> cur = getCurrentList();
+        if (from < 0 || to < 0 || from >= cur.size() || to >= cur.size()) return;
+        java.util.List<Task> next = new java.util.ArrayList<>(cur);
+        java.util.Collections.swap(next, from, to);
+        submitList(next, commitCallback);
+    }
 
     static class TaskViewHolder extends RecyclerView.ViewHolder {
 
@@ -80,20 +122,48 @@ public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
             this.b = binding;
         }
 
-        void bind(Task task, TaskListener listener) {
+        void bind(Task task, TaskListener listener, Map<Integer, String> categoryNames) {
             Context ctx = itemView.getContext();
 
-            // Title — strikethrough if completed
-            b.textTitle.setText(task.getTitle());
+            b.textTitle.setText(task.getTitle() != null ? task.getTitle() : "");
             if (task.isCompleted()) {
                 b.textTitle.setPaintFlags(b.textTitle.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-                b.textTitle.setAlpha(0.5f);
+                b.textTitle.setAlpha(0.55f);
             } else {
                 b.textTitle.setPaintFlags(b.textTitle.getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
                 b.textTitle.setAlpha(1.0f);
             }
 
-            // Description
+            TaskDisplayStatus dStatus = task.getDisplayStatus();
+            b.chipStatus.setText(UiResources.displayStatusLabel(ctx, dStatus));
+            int statusBg;
+            int statusFg = ContextCompat.getColor(ctx, android.R.color.white);
+            switch (dStatus) {
+                case COMPLETED:
+                    statusBg = ContextCompat.getColor(ctx, R.color.status_completed);
+                    break;
+                case OVERDUE:
+                    statusBg = ContextCompat.getColor(ctx, R.color.error_red);
+                    break;
+                case IN_PROGRESS:
+                    statusBg = ContextCompat.getColor(ctx, R.color.status_in_progress);
+                    break;
+                case PENDING:
+                default:
+                    statusBg = ContextCompat.getColor(ctx, R.color.status_pending);
+                    break;
+            }
+            b.chipStatus.setChipBackgroundColor(android.content.res.ColorStateList.valueOf(statusBg));
+            b.chipStatus.setTextColor(statusFg);
+
+            Integer cid = task.getCategoryId();
+            if (cid != null && categoryNames != null && categoryNames.containsKey(cid)) {
+                b.textCategory.setVisibility(View.VISIBLE);
+                b.textCategory.setText(categoryNames.get(cid));
+            } else {
+                b.textCategory.setVisibility(View.GONE);
+            }
+
             if (task.getDescription() != null && !task.getDescription().isEmpty()) {
                 b.textDescription.setVisibility(View.VISIBLE);
                 b.textDescription.setText(task.getDescription());
@@ -101,7 +171,6 @@ public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
                 b.textDescription.setVisibility(View.GONE);
             }
 
-            // Due date — red if overdue
             b.textDueDate.setText(DateUtils.toFriendlyLabel(ctx, task.getDueDate()));
             if (task.isOverdue()) {
                 b.textDueDate.setTextColor(ContextCompat.getColor(ctx, R.color.error_red));
@@ -111,18 +180,22 @@ public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
                 b.iconOverdue.setVisibility(View.GONE);
             }
 
-            // Priority chip color
             b.chipPriority.setText(UiResources.priorityLabel(ctx, task.getPriority()));
             int colorRes;
             switch (task.getPriority()) {
-                case HIGH:   colorRes = R.color.priority_high;   break;
-                case MEDIUM: colorRes = R.color.priority_medium; break;
-                default:     colorRes = R.color.priority_low;    break;
+                case HIGH:
+                    colorRes = R.color.priority_high;
+                    break;
+                case MEDIUM:
+                    colorRes = R.color.priority_medium;
+                    break;
+                default:
+                    colorRes = R.color.priority_low;
+                    break;
             }
             b.chipPriority.setChipBackgroundColorResource(colorRes);
 
-            // Subtask progress
-            int total     = task.getSubtasks() != null ? task.getSubtasks().size() : 0;
+            int total = task.getSubtasks() != null ? task.getSubtasks().size() : 0;
             int completed = task.getSubtaskCompletedCount();
             if (total > 0) {
                 b.layoutSubtaskProgress.setVisibility(View.VISIBLE);
@@ -133,19 +206,15 @@ public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
                 b.layoutSubtaskProgress.setVisibility(View.GONE);
             }
 
-            // Reminder indicator
             b.iconReminder.setVisibility(task.isReminderEnabled() ? View.VISIBLE : View.GONE);
 
-            // Checkbox
             b.checkboxComplete.setOnCheckedChangeListener(null);
             b.checkboxComplete.setChecked(task.isCompleted());
             b.checkboxComplete.setOnCheckedChangeListener(
                     (btn, checked) -> listener.onCheckChanged(task, checked));
 
             b.buttonEdit.setOnClickListener(v -> listener.onTaskEdit(task));
-
             b.buttonDelete.setOnClickListener(v -> listener.onTaskDelete(task));
-
             itemView.setOnClickListener(v -> listener.onTaskEdit(task));
         }
     }

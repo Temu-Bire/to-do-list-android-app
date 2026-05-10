@@ -44,6 +44,7 @@ android {
 
 dependencies {
     implementation(libs.appcompat)
+    implementation(libs.activity)
     implementation(libs.material)
     implementation(libs.constraintlayout)
     implementation(libs.lifecycle.livedata)
@@ -52,6 +53,9 @@ dependencies {
     implementation(libs.room.runtime)
     kapt(libs.room.compiler)
     implementation(libs.workmanager)
+    implementation(libs.mpandroidchart)
+    implementation(libs.security.crypto)
+    implementation(libs.biometric)
 
     // Hilt
     implementation(libs.hilt.android)

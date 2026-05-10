@@ -4,6 +4,7 @@ import android.app.Application;
 import androidx.appcompat.app.AppCompatDelegate;
 
 import com.example.to_dolist.core.util.AppPreferences;
+import com.example.to_dolist.core.util.NotificationHelper;
 
 import dagger.hilt.android.HiltAndroidApp;
 
@@ -17,6 +18,7 @@ public class ToDoApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        NotificationHelper.createChannel(this);
         AppPreferences.applyStoredLocale(this);
         applyUserTheme();
     }

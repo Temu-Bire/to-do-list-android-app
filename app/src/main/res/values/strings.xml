@@ -50,7 +50,75 @@
 
     <!-- Filter / Sort -->
     <string name="filter_all">All</string>
+    <string name="filter_active">Active</string>
     <string name="filter_completed">Completed</string>
+    <string name="filter_overdue">Overdue</string>
+    <string name="filter_in_progress">In progress</string>
+    <string name="label_category_filter">Category</string>
+    <string name="category_all">All categories</string>
+
+    <!-- Notifications -->
+    <string name="notif_task_due_soon">Task due soon</string>
+    <string name="notif_action_complete">Complete</string>
+    <string name="notif_action_snooze">Snooze 15m</string>
+
+    <!-- Task status (add/edit) -->
+    <string name="label_status">Status</string>
+    <string name="status_pending">Pending</string>
+    <string name="status_in_progress">In progress</string>
+    <string name="status_chip_pending">Pending</string>
+    <string name="status_chip_progress">In progress</string>
+    <string name="status_chip_completed">Done</string>
+    <string name="status_chip_overdue">Overdue</string>
+
+    <!-- Empty state -->
+    <string name="empty_state_title">Nothing here yet</string>
+    <string name="empty_state_subtitle">Add a task to get started. You can organize by category and priority.</string>
+
+    <!-- Navigation -->
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_calendar">Calendar</string>
+    <string name="unlock_title">Unlock</string>
+    <string name="unlock_subtitle">Enter your PIN or use biometrics</string>
+    <string name="pin_hint">PIN</string>
+    <string name="unlock">Unlock</string>
+    <string name="set_pin">Save PIN</string>
+    <string name="settings_security">App lock</string>
+    <string name="settings_security_summary">PIN and optional fingerprint</string>
+    <string name="settings_biometric">Use fingerprint / face</string>
+    <string name="settings_enable_lock">Enable app lock</string>
+    <string name="settings_export">Export tasks (CSV)</string>
+    <string name="settings_export_summary">Share a spreadsheet of your tasks</string>
+    <string name="settings_backup">Backup database</string>
+    <string name="settings_backup_summary">Save a copy of local data (advanced)</string>
+    <string name="settings_restore">Restore database</string>
+    <string name="settings_restore_summary">Replace local data from a backup file</string>
+    <string name="settings_sync">Cloud sync</string>
+    <string name="settings_sync_summary">Planned: sign in to sync across devices</string>
+    <string name="settings_notifications">Reminder notifications</string>
+    <string name="settings_notifications_summary">Channels are managed in system settings</string>
+    <string name="settings_font_size">Font size</string>
+    <string name="font_small">Small</string>
+    <string name="font_default">Default</string>
+    <string name="font_large">Large</string>
+    <string name="dashboard_completed_week">Completed (due dates this week)</string>
+    <string name="dashboard_bar_upcoming">Open tasks due — next 7 days</string>
+    <string name="dashboard_productivity">Completion rate</string>
+    <string name="dashboard_upcoming">Upcoming</string>
+    <string name="stats_total_open">Open tasks</string>
+    <string name="label_category">Category</string>
+    <string name="hint_new_category">New category name</string>
+    <string name="add_category">Add category</string>
+    <string name="unlock_wrong_pin">Incorrect PIN</string>
+    <string name="unlock_no_pin_set">No PIN saved. Disable app lock in settings and set a PIN when enabling it.</string>
+    <string name="export_done">Export finished</string>
+    <string name="export_failed">Export failed</string>
+    <string name="backup_done">Backup saved</string>
+    <string name="backup_failed">Backup failed</string>
+    <string name="restore_done">Restore complete. Please restart the app.</string>
+    <string name="restore_failed">Restore failed</string>
+    <string name="category_added">Category added</string>
+    <string name="open_notification_settings">Open notification settings</string>
     <string name="sort_date">Date</string>
     <string name="sort_priority">Priority</string>
     <string name="label_sort">Sort:</string>

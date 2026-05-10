@@ -3,63 +3,54 @@ package com.example.to_dolist.presentation.home;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModel;
 
 import com.example.to_dolist.domain.model.Category;
 import com.example.to_dolist.domain.model.Task;
+import com.example.to_dolist.domain.model.TaskWorkflowStatus;
 import com.example.to_dolist.domain.usecase.AddTaskUseCase;
 import com.example.to_dolist.domain.usecase.DeleteTaskUseCase;
 import com.example.to_dolist.domain.usecase.GetAllTasksUseCase;
 import com.example.to_dolist.domain.usecase.GetCategoriesUseCase;
 import com.example.to_dolist.domain.usecase.GetOverdueTasksUseCase;
 import com.example.to_dolist.domain.usecase.UpdateTaskUseCase;
+import com.example.to_dolist.domain.repository.ITaskRepository;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.inject.Inject;
 
 import dagger.hilt.android.lifecycle.HiltViewModel;
 
-/**
- * HomeViewModel owns the UI state for the task list screen.
- *
- * Senior engineer note: ViewModel survives configuration changes (rotation).
- * It never holds a reference to a View or Context.
- */
 @HiltViewModel
 public class HomeViewModel extends ViewModel {
 
-    // ─── Use Cases (injected via Hilt) ────────────────────────────
+    public enum FilterMode { ALL, ACTIVE, COMPLETED, OVERDUE, IN_PROGRESS }
+    public enum SortMode { BY_DATE, BY_PRIORITY }
+
     private final GetAllTasksUseCase getAllTasksUseCase;
     private final AddTaskUseCase addTaskUseCase;
     private final UpdateTaskUseCase updateTaskUseCase;
     private final DeleteTaskUseCase deleteTaskUseCase;
     private final GetCategoriesUseCase getCategoriesUseCase;
     private final GetOverdueTasksUseCase getOverdueTasksUseCase;
-
-    // ─── Filter / Sort state ──────────────────────────────────────────────────
-    public enum FilterMode { ALL, COMPLETED, BY_CATEGORY }
-    public enum SortMode  { BY_DATE, BY_PRIORITY }
+    private final ITaskRepository taskRepository;
 
     private final MutableLiveData<FilterMode> filterMode = new MutableLiveData<>(FilterMode.ALL);
-    private final MutableLiveData<SortMode>   sortMode   = new MutableLiveData<>(SortMode.BY_DATE);
-    private final MutableLiveData<Integer>    categoryId = new MutableLiveData<>(null);
+    private final MutableLiveData<SortMode> sortMode = new MutableLiveData<>(SortMode.BY_DATE);
+    private final MutableLiveData<Integer> categoryId = new MutableLiveData<>(null);
 
-    // ─── Tasks LiveData ───────────────────────────────────────────────────────
     private final LiveData<List<Task>> allTasks;
-    private final LiveData<List<Task>> completedTasks;
-    private final LiveData<List<Task>> prioritySortedTasks;
-    private final LiveData<List<Task>> overdueTasks;
+    private final LiveData<List<Task>> baseTasks;
 
-    /**
-     * MediatorLiveData reacts to filter/sort changes and switches source automatically.
-     */
     private final MediatorLiveData<List<Task>> tasks = new MediatorLiveData<>();
+    private List<Task> lastBase = new ArrayList<>();
 
-    // ─── Categories ───────────────────────────────────────────────────────────
+    private final LiveData<List<Task>> overdueTasks;
     private final LiveData<List<Category>> categories;
-
-    // ─── Error / snackbar message ─────────────────────────────────────────────
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
 
     @Inject
@@ -68,67 +59,108 @@ public class HomeViewModel extends ViewModel {
                          UpdateTaskUseCase updateTaskUseCase,
                          DeleteTaskUseCase deleteTaskUseCase,
                          GetCategoriesUseCase getCategoriesUseCase,
-                         GetOverdueTasksUseCase getOverdueTasksUseCase) {
+                         GetOverdueTasksUseCase getOverdueTasksUseCase,
+                         ITaskRepository taskRepository) {
 
-        this.getAllTasksUseCase    = getAllTasksUseCase;
-        this.addTaskUseCase       = addTaskUseCase;
-        this.updateTaskUseCase    = updateTaskUseCase;
-        this.deleteTaskUseCase    = deleteTaskUseCase;
+        this.getAllTasksUseCase = getAllTasksUseCase;
+        this.addTaskUseCase = addTaskUseCase;
+        this.updateTaskUseCase = updateTaskUseCase;
+        this.deleteTaskUseCase = deleteTaskUseCase;
         this.getCategoriesUseCase = getCategoriesUseCase;
         this.getOverdueTasksUseCase = getOverdueTasksUseCase;
+        this.taskRepository = taskRepository;
 
-        allTasks          = getAllTasksUseCase.execute();
-        completedTasks    = getAllTasksUseCase.executeCompleted();
-        prioritySortedTasks = getAllTasksUseCase.executeSortedByPriority();
-        overdueTasks      = getOverdueTasksUseCase.execute();
-        categories        = getCategoriesUseCase.execute();
+        allTasks = getAllTasksUseCase.execute();
+        baseTasks = Transformations.switchMap(categoryId, cid ->
+                cid == null ? allTasks : getAllTasksUseCase.executeByCategory(cid));
 
-        // Whenever filterMode or sortMode changes, switch the active source
-        tasks.addSource(filterMode, f -> updateTaskSource());
-        tasks.addSource(sortMode,   s -> updateTaskSource());
-        tasks.addSource(categoryId, c -> updateTaskSource());
+        overdueTasks = getOverdueTasksUseCase.execute();
+        categories = getCategoriesUseCase.execute();
 
-        // Seed initial source
-        updateTaskSource();
+        tasks.addSource(baseTasks, this::onBaseChanged);
+        tasks.addSource(filterMode, f -> recomputeTasks());
+        tasks.addSource(sortMode, s -> recomputeTasks());
     }
 
-    private LiveData<List<Task>> currentSource = null;
+    private void onBaseChanged(List<Task> list) {
+        lastBase = list != null ? new ArrayList<>(list) : new ArrayList<>();
+        recomputeTasks();
+    }
 
-    private void updateTaskSource() {
+    private void recomputeTasks() {
         FilterMode filter = filterMode.getValue();
-        SortMode   sort   = sortMode.getValue();
-        Integer    catId  = categoryId.getValue();
+        if (filter == null) filter = FilterMode.ALL;
 
-        LiveData<List<Task>> newSource;
-
-        if (filter == FilterMode.COMPLETED) {
-            newSource = completedTasks;
-        } else if (filter == FilterMode.BY_CATEGORY && catId != null) {
-            newSource = getAllTasksUseCase.executeByCategory(catId);
-        } else if (sort == SortMode.BY_PRIORITY) {
-            newSource = prioritySortedTasks;
-        } else {
-            newSource = allTasks;
+        List<Task> step = new ArrayList<>(lastBase);
+        switch (filter) {
+            case ACTIVE:
+                step.removeIf(Task::isCompleted);
+                break;
+            case COMPLETED:
+                step.removeIf(t -> !t.isCompleted());
+                break;
+            case OVERDUE:
+                step.removeIf(t -> !t.isOverdue());
+                break;
+            case IN_PROGRESS:
+                step.removeIf(t -> t.isCompleted()
+                        || t.getWorkflowStatus() != TaskWorkflowStatus.IN_PROGRESS);
+                break;
+            case ALL:
+            default:
+                break;
         }
 
-        if (currentSource != null) tasks.removeSource(currentSource);
-        currentSource = newSource;
-        tasks.addSource(currentSource, tasks::setValue);
+        SortMode sort = sortMode.getValue();
+        if (sort == SortMode.BY_PRIORITY) {
+            step.sort(Comparator
+                    .comparingInt((Task t) -> t.getPriority().ordinal())
+                    .thenComparingLong(Task::getDueDate));
+        } else {
+            step.sort(Comparator
+                    .comparingInt(Task::getSortOrder)
+                    .thenComparingLong(Task::getDueDate));
+        }
+
+        tasks.setValue(step);
     }
 
-    // ─── Public API ───────────────────────────────────────────────────────────
+    public LiveData<List<Task>> getTasks() {
+        return tasks;
+    }
 
-    public LiveData<List<Task>> getTasks()        { return tasks; }
-    public LiveData<List<Task>> getOverdueTasks() { return overdueTasks; }
-    public LiveData<List<Category>> getCategories() { return categories; }
-    public LiveData<String> getErrorMessage()     { return errorMessage; }
+    public LiveData<List<Task>> getOverdueTasks() {
+        return overdueTasks;
+    }
 
-    public void setFilter(FilterMode mode)    { filterMode.setValue(mode); }
-    public void setSort(SortMode mode)        { sortMode.setValue(mode); }
-    public void setCategory(Integer catId)    { categoryId.setValue(catId); }
+    public LiveData<List<Category>> getCategories() {
+        return categories;
+    }
 
-    public FilterMode getCurrentFilter()      { return filterMode.getValue(); }
-    public SortMode   getCurrentSort()        { return sortMode.getValue(); }
+    public LiveData<String> getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setFilter(FilterMode mode) {
+        filterMode.setValue(mode);
+    }
+
+    public void setSort(SortMode mode) {
+        sortMode.setValue(mode);
+    }
+
+    /** Pass null to clear category filter. */
+    public void setCategoryFilter(Integer catId) {
+        categoryId.setValue(catId);
+    }
+
+    public FilterMode getCurrentFilter() {
+        return filterMode.getValue();
+    }
+
+    public SortMode getCurrentSort() {
+        return sortMode.getValue();
+    }
 
     public void insert(Task task) {
         try {
@@ -150,8 +182,15 @@ public class HomeViewModel extends ViewModel {
         deleteTaskUseCase.execute(task);
     }
 
+    public void persistTaskOrder(List<Task> ordered) {
+        taskRepository.updateSortOrders(ordered);
+    }
+
     public void toggleComplete(Task task) {
         task.setCompleted(!task.isCompleted());
+        if (task.isCompleted()) {
+            task.setWorkflowStatus(TaskWorkflowStatus.PENDING);
+        }
         updateTaskUseCase.execute(task);
     }
 }

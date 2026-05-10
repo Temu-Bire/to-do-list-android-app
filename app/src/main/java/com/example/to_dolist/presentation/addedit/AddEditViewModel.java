@@ -8,6 +8,7 @@ import com.example.to_dolist.domain.model.Category;
 import com.example.to_dolist.domain.model.Priority;
 import com.example.to_dolist.domain.model.Subtask;
 import com.example.to_dolist.domain.model.Task;
+import com.example.to_dolist.domain.model.TaskWorkflowStatus;
 import com.example.to_dolist.domain.usecase.AddTaskUseCase;
 import com.example.to_dolist.domain.usecase.GetCategoriesUseCase;
 import com.example.to_dolist.domain.usecase.SuggestPriorityUseCase;
@@ -38,6 +39,7 @@ public class AddEditViewModel extends ViewModel {
     private final MutableLiveData<Boolean>       recurring    = new MutableLiveData<>(false);
     private final MutableLiveData<String>        recurrenceRule = new MutableLiveData<>("NONE");
     private final MutableLiveData<Integer>       categoryId   = new MutableLiveData<>(null);
+    private final MutableLiveData<TaskWorkflowStatus> workflowStatus = new MutableLiveData<>(TaskWorkflowStatus.PENDING);
     private final MutableLiveData<List<Subtask>> subtasks     = new MutableLiveData<>(new ArrayList<>());
 
     // ─── UI events ────────────────────────────────────────────────────────────
@@ -46,6 +48,7 @@ public class AddEditViewModel extends ViewModel {
     private final MutableLiveData<Priority> suggestedPriority = new MutableLiveData<>();
 
     private int editingTaskId = -1; // -1 = new task
+    private int editingSortOrder = 0;
 
     @Inject
     public AddEditViewModel(AddTaskUseCase addTaskUseCase,
@@ -70,6 +73,8 @@ public class AddEditViewModel extends ViewModel {
         recurring.setValue(task.isRecurring());
         recurrenceRule.setValue(task.getRecurrenceRule());
         categoryId.setValue(task.getCategoryId());
+        workflowStatus.setValue(task.getWorkflowStatus());
+        editingSortOrder = task.getSortOrder();
         subtasks.setValue(task.getSubtasks() != null ? new ArrayList<>(task.getSubtasks()) : new ArrayList<>());
     }
 
@@ -113,6 +118,12 @@ public class AddEditViewModel extends ViewModel {
             return;
         }
 
+        TaskWorkflowStatus ws = workflowStatus.getValue() != null
+                ? workflowStatus.getValue()
+                : TaskWorkflowStatus.PENDING;
+        if (completed.getValue() != null && completed.getValue()) {
+            ws = TaskWorkflowStatus.PENDING;
+        }
         Task task = new Task(
                 editingTaskId == -1 ? 0 : editingTaskId,
                 t.trim(),
@@ -123,7 +134,9 @@ public class AddEditViewModel extends ViewModel {
                 categoryId.getValue(),
                 reminder.getValue() != null && reminder.getValue(),
                 recurring.getValue() != null && recurring.getValue(),
-                recurrenceRule.getValue()
+                recurrenceRule.getValue(),
+                ws,
+                editingTaskId == -1 ? 0 : editingSortOrder
         );
         task.setSubtasks(subtasks.getValue());
 
@@ -166,4 +179,8 @@ public class AddEditViewModel extends ViewModel {
     public void setRecurring(boolean v)     { recurring.setValue(v); }
     public void setRecurrenceRule(String v) { recurrenceRule.setValue(v); }
     public void setCategoryId(Integer v)    { categoryId.setValue(v); }
+
+    public LiveData<TaskWorkflowStatus> getWorkflowStatus() { return workflowStatus; }
+
+    public void setWorkflowStatus(TaskWorkflowStatus v) { workflowStatus.setValue(v); }
 }

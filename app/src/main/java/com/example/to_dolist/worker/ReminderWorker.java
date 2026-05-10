@@ -38,7 +38,8 @@ public class ReminderWorker extends Worker {
         int    taskId    = getInputData().getInt(KEY_TASK_ID, -1);
         String taskTitle = getInputData().getString(KEY_TASK_TITLE);
 
-        if (taskId == -1 || taskTitle == null) return Result.failure();
+        if (taskId == -1) return Result.failure();
+        if (taskTitle == null) taskTitle = "";
 
         NotificationHelper.showReminder(getApplicationContext(), taskId, taskTitle);
         return Result.success();
@@ -72,5 +73,24 @@ public class ReminderWorker extends Worker {
     /** Cancel any pending reminder for a specific task. */
     public static void cancel(Context context, int taskId) {
         WorkManager.getInstance(context).cancelUniqueWork("reminder_" + taskId);
+    }
+
+    /** Re-fire a reminder after a short delay (notification snooze). */
+    public static void scheduleSnooze(Context context, int taskId, String taskTitle) {
+        Data inputData = new Data.Builder()
+                .putInt(KEY_TASK_ID, taskId)
+                .putString(KEY_TASK_TITLE, taskTitle != null ? taskTitle : "")
+                .build();
+
+        OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(ReminderWorker.class)
+                .setInitialDelay(15, TimeUnit.MINUTES)
+                .setInputData(inputData)
+                .build();
+
+        WorkManager.getInstance(context).enqueueUniqueWork(
+                "reminder_" + taskId,
+                androidx.work.ExistingWorkPolicy.REPLACE,
+                request
+        );
     }
 }

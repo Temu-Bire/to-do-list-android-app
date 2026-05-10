@@ -2,12 +2,12 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/coordinatorLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true">
 
-    <!-- App Bar -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -22,7 +22,6 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Main content -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -30,7 +29,6 @@
         android:paddingHorizontal="16dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <!-- Overdue badge -->
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/textOverdueBadge"
             android:layout_width="wrap_content"
@@ -39,11 +37,31 @@
             android:background="@color/overdue_red"
             android:paddingHorizontal="10dp"
             android:paddingVertical="4dp"
-            android:textColor="@android:color/white"
             android:textAppearance="?attr/textAppearanceLabelSmall"
+            android:textColor="@android:color/white"
             android:visibility="gone" />
 
-        <!-- Filter chips row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="@string/label_category_filter"
+                android:textAppearance="?attr/textAppearanceLabelMedium" />
+
+            <Spinner
+                android:id="@+id/spinnerCategory"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+        </LinearLayout>
+
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -51,10 +69,11 @@
             android:scrollbars="none">
 
             <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupFilter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:singleSelection="true"
-                app:selectionRequired="true">
+                app:selectionRequired="true"
+                app:singleSelection="true">
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipAll"
@@ -65,16 +84,35 @@
                     android:text="@string/filter_all" />
 
                 <com.google.android.material.chip.Chip
+                    android:id="@+id/chipActive"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/filter_active" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipInProgress"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/filter_in_progress" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipOverdue"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/filter_overdue" />
+
+                <com.google.android.material.chip.Chip
                     android:id="@+id/chipCompleted"
                     style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/filter_completed" />
-
             </com.google.android.material.chip.ChipGroup>
         </HorizontalScrollView>
 
-        <!-- Sort chips row -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -85,15 +123,16 @@
             <com.google.android.material.textview.MaterialTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
                 android:text="@string/label_sort"
-                android:textAppearance="?attr/textAppearanceLabelMedium"
-                android:layout_marginEnd="8dp" />
+                android:textAppearance="?attr/textAppearanceLabelMedium" />
 
             <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupSort"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:singleSelection="true"
-                app:selectionRequired="true">
+                app:selectionRequired="true"
+                app:singleSelection="true">
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipSortDate"
@@ -109,42 +148,70 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/sort_priority" />
-
             </com.google.android.material.chip.ChipGroup>
         </LinearLayout>
 
-        <!-- Empty state -->
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/textEmptyState"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="64dp"
-            android:gravity="center"
-            android:text="@string/no_tasks"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:visibility="gone" />
-
-        <!-- Task list -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerViewTasks"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
             android:layout_marginTop="8dp"
-            android:clipToPadding="false"
-            android:paddingBottom="80dp" />
+            android:layout_weight="1">
 
+            <LinearLayout
+                android:id="@+id/layoutEmptyState"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="24dp"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <ImageView
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:alpha="0.85"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_empty_tasks"
+                    app:tint="?attr/colorPrimary" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:gravity="center"
+                    android:text="@string/empty_state_title"
+                    android:textAppearance="?attr/textAppearanceHeadlineSmall" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center"
+                    android:text="@string/empty_state_subtitle"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewTasks"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingBottom="96dp"
+                android:scrollbars="vertical" />
+        </FrameLayout>
     </LinearLayout>
 
-    <!-- FAB -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/fabAddTask"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
         android:contentDescription="@string/add_task"
-        android:src="@android:drawable/ic_input_add"
+        android:text="@string/add_task"
+        app:icon="@android:drawable/ic_input_add"
         app:layout_anchorGravity="bottom|end" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -10,6 +10,16 @@
         app:showAsAction="ifRoom" />
 
     <item
+        android:id="@+id/action_dashboard"
+        android:title="@string/title_dashboard"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_calendar"
+        android:title="@string/title_calendar"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_settings"
         android:icon="@android:drawable/ic_menu_preferences"
         android:title="@string/settings"

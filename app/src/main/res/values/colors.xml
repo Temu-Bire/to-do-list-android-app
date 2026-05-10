@@ -11,6 +11,9 @@
     <!-- Status -->
     <color name="error_red">#FFB00020</color>
     <color name="overdue_red">#FFCF6679</color>
+    <color name="status_pending">#FF5C6BC0</color>
+    <color name="status_in_progress">#FFFF9800</color>
+    <color name="status_completed">#FF43A047</color>
 
     <!-- Text -->
     <color name="text_secondary">#99000000</color>

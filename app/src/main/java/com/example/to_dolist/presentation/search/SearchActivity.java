@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.view.MenuItem;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -13,7 +12,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.to_dolist.R;
 import com.example.to_dolist.databinding.ActivitySearchBinding;
 import com.example.to_dolist.domain.model.Task;
+import com.example.to_dolist.presentation.BaseActivity;
 import com.example.to_dolist.presentation.addedit.AddEditActivity;
+import com.example.to_dolist.domain.model.TaskWorkflowStatus;
 import com.example.to_dolist.presentation.home.TaskAdapter;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
@@ -21,7 +22,7 @@ import com.google.android.material.snackbar.Snackbar;
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
-public class SearchActivity extends AppCompatActivity implements TaskAdapter.TaskListener {
+public class SearchActivity extends BaseActivity implements TaskAdapter.TaskListener {
 
     private ActivitySearchBinding binding;
     private SearchViewModel viewModel;
@@ -68,6 +69,8 @@ public class SearchActivity extends AppCompatActivity implements TaskAdapter.Tas
         intent.putExtra(AddEditActivity.EXTRA_TASK_REMINDER,    task.isReminderEnabled());
         intent.putExtra(AddEditActivity.EXTRA_TASK_RECURRING,   task.isRecurring());
         intent.putExtra(AddEditActivity.EXTRA_TASK_CATEGORY_ID, task.getCategoryId() != null ? task.getCategoryId() : -1);
+        intent.putExtra(AddEditActivity.EXTRA_TASK_WORKFLOW, task.getWorkflowStatus().name());
+        intent.putExtra(AddEditActivity.EXTRA_TASK_SORT_ORDER, task.getSortOrder());
         startActivity(intent);
     }
 
@@ -96,6 +99,9 @@ public class SearchActivity extends AppCompatActivity implements TaskAdapter.Tas
     @Override
     public void onCheckChanged(Task task, boolean checked) {
         task.setCompleted(checked);
+        if (checked) {
+            task.setWorkflowStatus(TaskWorkflowStatus.PENDING);
+        }
         viewModel.update(task);
     }
 

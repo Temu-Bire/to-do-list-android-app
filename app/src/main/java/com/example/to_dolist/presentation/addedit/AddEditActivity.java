@@ -6,9 +6,11 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -16,17 +18,22 @@ import com.example.to_dolist.R;
 import com.example.to_dolist.core.util.DateUtils;
 import com.example.to_dolist.core.util.UiResources;
 import com.example.to_dolist.databinding.ActivityAddEditBinding;
+import com.example.to_dolist.presentation.BaseActivity;
+import com.example.to_dolist.domain.model.Category;
 import com.example.to_dolist.domain.model.Priority;
 import com.example.to_dolist.domain.model.Task;
+import com.example.to_dolist.domain.model.TaskWorkflowStatus;
 import com.example.to_dolist.worker.ReminderWorker;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
-public class AddEditActivity extends AppCompatActivity {
+public class AddEditActivity extends BaseActivity {
 
     public static final String EXTRA_TASK_ID          = "extra_task_id";
     public static final String EXTRA_TASK_TITLE       = "extra_task_title";
@@ -37,10 +44,13 @@ public class AddEditActivity extends AppCompatActivity {
     public static final String EXTRA_TASK_REMINDER    = "extra_task_reminder";
     public static final String EXTRA_TASK_RECURRING   = "extra_task_recurring";
     public static final String EXTRA_TASK_CATEGORY_ID = "extra_task_category_id";
+    public static final String EXTRA_TASK_WORKFLOW     = "extra_task_workflow";
+    public static final String EXTRA_TASK_SORT_ORDER  = "extra_task_sort_order";
 
     private ActivityAddEditBinding binding;
     private AddEditViewModel viewModel;
     private SubtaskAdapter subtaskAdapter;
+    private final List<Category> categoriesBuffer = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,8 +67,41 @@ public class AddEditActivity extends AppCompatActivity {
         setupDatePicker();
         setupSaveButton();
         setupAutoSuggest();
+        setupWorkflowChips();
+        setupCategorySpinner();
         loadIntentData();
         observeViewModel();
+    }
+
+    private void setupWorkflowChips() {
+        binding.chipWorkflowPending.setOnClickListener(v ->
+                viewModel.setWorkflowStatus(TaskWorkflowStatus.PENDING));
+        binding.chipWorkflowInProgress.setOnClickListener(v ->
+                viewModel.setWorkflowStatus(TaskWorkflowStatus.IN_PROGRESS));
+    }
+
+    private void setupCategorySpinner() {
+        Spinner spinner = binding.spinnerCategory;
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, new ArrayList<>());
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (position <= 0 || position > categoriesBuffer.size()) {
+                    viewModel.setCategoryId(null);
+                    return;
+                }
+                viewModel.setCategoryId(categoriesBuffer.get(position - 1).getId());
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                viewModel.setCategoryId(null);
+            }
+        });
     }
 
     private void setupSubtaskList() {
@@ -137,6 +180,11 @@ public class AddEditActivity extends AppCompatActivity {
         if (taskId != -1) {
             if (getSupportActionBar() != null) getSupportActionBar().setTitle(R.string.edit_task);
 
+            String wfName = getIntent().getStringExtra(EXTRA_TASK_WORKFLOW);
+            TaskWorkflowStatus wf = wfName != null
+                    ? TaskWorkflowStatus.fromKey(wfName)
+                    : TaskWorkflowStatus.PENDING;
+            int sortOrder = getIntent().getIntExtra(EXTRA_TASK_SORT_ORDER, 0);
             Task task = new Task(
                     taskId,
                     getIntent().getStringExtra(EXTRA_TASK_TITLE),
@@ -148,7 +196,9 @@ public class AddEditActivity extends AppCompatActivity {
                             ? null : getIntent().getIntExtra(EXTRA_TASK_CATEGORY_ID, -1),
                     getIntent().getBooleanExtra(EXTRA_TASK_REMINDER, false),
                     getIntent().getBooleanExtra(EXTRA_TASK_RECURRING, false),
-                    null
+                    null,
+                    wf,
+                    sortOrder
             );
             viewModel.loadTask(task);
         } else {
@@ -199,6 +249,42 @@ public class AddEditActivity extends AppCompatActivity {
         // Reminder toggle
         viewModel.getReminder().observe(this, enabled ->
                 binding.switchReminder.setChecked(enabled));
+
+        viewModel.getWorkflowStatus().observe(this, ws -> {
+            if (ws == null) return;
+            binding.chipGroupWorkflow.check(
+                    ws == TaskWorkflowStatus.IN_PROGRESS
+                            ? binding.chipWorkflowInProgress.getId()
+                            : binding.chipWorkflowPending.getId());
+        });
+
+        viewModel.getCategories().observe(this, categories -> {
+            categoriesBuffer.clear();
+            List<String> labels = new ArrayList<>();
+            labels.add(getString(R.string.category_all));
+            if (categories != null) {
+                categoriesBuffer.addAll(categories);
+                for (Category c : categories) {
+                    labels.add(c.getName() != null ? c.getName() : "");
+                }
+            }
+            @SuppressWarnings("unchecked")
+            ArrayAdapter<String> spAdapter =
+                    (ArrayAdapter<String>) binding.spinnerCategory.getAdapter();
+            spAdapter.clear();
+            spAdapter.addAll(labels);
+            spAdapter.notifyDataSetChanged();
+
+            Integer selected = viewModel.getCategoryId().getValue();
+            if (selected != null) {
+                for (int i = 0; i < categoriesBuffer.size(); i++) {
+                    if (categoriesBuffer.get(i).getId() == selected) {
+                        binding.spinnerCategory.setSelection(i + 1, false);
+                        break;
+                    }
+                }
+            }
+        });
 
         // Save success
         viewModel.getSaveSuccess().observe(this, success -> {

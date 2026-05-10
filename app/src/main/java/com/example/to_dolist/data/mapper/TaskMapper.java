@@ -6,6 +6,7 @@ import com.example.to_dolist.data.local.entity.TaskEntity;
 import com.example.to_dolist.domain.model.Priority;
 import com.example.to_dolist.domain.model.Subtask;
 import com.example.to_dolist.domain.model.Task;
+import com.example.to_dolist.domain.model.TaskWorkflowStatus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +29,9 @@ public class TaskMapper {
                 entity.getCategoryId(),
                 entity.isReminderEnabled(),
                 entity.isRecurring(),
-                entity.getRecurrenceRule()
+                entity.getRecurrenceRule(),
+                TaskWorkflowStatus.fromKey(entity.getWorkflowStatus()),
+                entity.getSortOrder()
         );
 
         // Load subtasks eagerly
@@ -55,7 +58,9 @@ public class TaskMapper {
                 entity.getCategoryId(),
                 entity.isReminderEnabled(),
                 entity.isRecurring(),
-                entity.getRecurrenceRule()
+                entity.getRecurrenceRule(),
+                TaskWorkflowStatus.fromKey(entity.getWorkflowStatus()),
+                entity.getSortOrder()
         );
     }
 
@@ -69,7 +74,9 @@ public class TaskMapper {
                 task.getCategoryId(),
                 task.isReminderEnabled(),
                 task.isRecurring(),
-                task.getRecurrenceRule()
+                task.getRecurrenceRule(),
+                task.getWorkflowStatus().getKey(),
+                task.getSortOrder()
         );
         if (task.getId() != 0) entity.setId(task.getId());
         return entity;

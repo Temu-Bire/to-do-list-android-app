@@ -107,6 +107,52 @@
 
             </com.google.android.material.chip.ChipGroup>
 
+            <!-- Workflow status (incomplete tasks) -->
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/label_status"
+                android:textAppearance="?attr/textAppearanceLabelLarge" />
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupWorkflow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                app:selectionRequired="true"
+                app:singleSelection="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipWorkflowPending"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="@string/status_pending" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipWorkflowInProgress"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/status_in_progress" />
+            </com.google.android.material.chip.ChipGroup>
+
+            <!-- Category -->
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/label_category"
+                android:textAppearance="?attr/textAppearanceLabelLarge" />
+
+            <Spinner
+                android:id="@+id/spinnerCategory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp" />
+
             <!-- AI suggestion banner -->
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/textPrioritySuggestion"
