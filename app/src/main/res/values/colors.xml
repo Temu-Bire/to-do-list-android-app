@@ -1,8 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="priority_high">#D32F2F</color>
-    <color name="priority_medium">#FBC02D</color>
-    <color name="priority_low">#388E3C</color>
+    <!-- Brand -->
+    <color name="seed">#5B67CA</color>
+
+    <!-- Priority -->
+    <color name="priority_high">#FFEB3B3B</color>
+    <color name="priority_medium">#FFFFA500</color>
+    <color name="priority_low">#FF4CAF50</color>
+
+    <!-- Status -->
+    <color name="error_red">#FFB00020</color>
+    <color name="overdue_red">#FFCF6679</color>
+
+    <!-- Text -->
+    <color name="text_secondary">#99000000</color>
+    <color name="text_secondary_night">#99FFFFFF</color>
+
+    <!-- Chip on completed -->
+    <color name="completed_alpha">#66000000</color>
 </resources>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">የሥራ ዝርዝር</string>
+
+    <!-- Actions -->
+    <string name="add_task">ሥራ ጨምር</string>
+    <string name="edit_task">ሥራ አስተካክል</string>
+    <string name="save_task">አስቀምጥ</string>
+    <string name="search">ፈልግ</string>
+    <string name="search_hint">ሥራን ፈልግ…</string>
+    <string name="undo">ቀልብስ</string>
+    <string name="settings">ቅንብሮች</string>
+    <string name="delete">ሰርዝ</string>
+    <string name="cancel">ተወው</string>
+
+    <!-- Fields -->
+    <string name="hint_title">የሥራ አርዕስት *</string>
+    <string name="hint_description">መግለጫ (አማራጭ)</string>
+    <string name="priority">ቅድመ ተከናዋኒነት</string>
+    <string name="priority_high">ከፍተኛ</string>
+    <string name="priority_medium">መካከለኛ</string>
+    <string name="priority_low">ዝቅተኛ</string>
+    <string name="due_date">የመጨረሻ ቀን</string>
+    <string name="pick_date">ቀን ምረጥ</string>
+    <string name="reminder">ማስታወቂያ (፩ ሰዓት ቀርቶ)</string>
+    <string name="recurring">የድግመ ሥራ</string>
+    <string name="add_subtask">+ ንዑስ ሥራ ጨምር</string>
+    <string name="hint_subtask">የንዑስ ሥር አርዕስት</string>
+    <string name="label_subtasks">ንዑስ ሥራዎች</string>
+    <string name="button_add">ጨምር</string>
+
+    <!-- Settings -->
+    <string name="title_settings">ቅንብሮች</string>
+    <string name="dark_mode">ጨለማ ገጽታ</string>
+    <string name="dark_mode_summary">በመላው መተግበሪያው ላይ የጨለማ ገጽታ እንዲሰርፍ</string>
+    <string name="language">ቋንቋ</string>
+    <string name="language_summary">English ወይም አማርኛ</string>
+    <string name="language_english">English</string>
+    <string name="language_amharic">አማርኛ</string>
+
+    <!-- Messages -->
+    <string name="task_saved">ሥራው ተቀምጧል</string>
+    <string name="task_deleted">ሥራው ተሰርዟል</string>
+    <string name="delete_task_title">ይህን ሥራ ይሰርዟል?</string>
+    <string name="delete_task_message">«%1$s» ይጥፋል።</string>
+    <string name="title_required">አርዕስት ያስፈልጋል</string>
+    <string name="no_tasks">እስካሁን ምንም ሥራ የለም።\nለመጨመር + ይንኩ!</string>
+    <string name="no_results">ውጤት አልተገኘም</string>
+    <string name="priority_suggestion">የተረዳው ቅድመ ተከናዋኒነት፦ %1$s — ለመተግበር ምልክት ይንኩ</string>
+
+    <!-- Filter / Sort -->
+    <string name="filter_all">ሁሉም</string>
+    <string name="filter_completed">የተጠናቀቁ</string>
+    <string name="sort_date">ቀን</string>
+    <string name="sort_priority">ተከናዋኒነት</string>
+    <string name="label_sort">መደብ፦</string>
+
+    <!-- Due date labels -->
+    <string name="due_prefix">የመጨረሻ፦ %1$s</string>
+    <string name="due_today">ዛሬ</string>
+    <string name="due_tomorrow">ነገ</string>
+
+    <plurals name="overdue_tasks">
+        <item quantity="one">%d ጊዜው አልፎበት ያለ ሥራ</item>
+        <item quantity="other">%d ጊዜያቸው አልፎባቸው ያሉ ሥራዎች</item>
+    </plurals>
+
+    <!-- Content descriptions -->
+    <string name="cd_delete_task">ሥራ ሰርዝ</string>
+    <string name="cd_edit_task">ሥራ አስተካክል</string>
+    <string name="cd_complete_task">ተግባሩን እንደተጠናቀቀ ምልክት አድርግ</string>
+    <string name="cd_reminder">ማስታወቂያ ታንቋል</string>
+    <string name="cd_overdue">ጊዜው አልፎበት</string>
+
+    <string-array name="priority_options">
+        <item>ከፍተኛ</item>
+        <item>መካከለኛ</item>
+        <item>ዝቅተኛ</item>
+    </string-array>
+
+    <string-array name="recurrence_options">
+        <item>የለም</item>
+        <item>ዕለት ተዕለት</item>
+        <item>ሳምንታዊ</item>
+        <item>ወርሓዊ</item>
+    </string-array>
+</resources>
